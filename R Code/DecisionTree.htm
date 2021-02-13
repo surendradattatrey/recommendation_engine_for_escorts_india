@@ -1,0 +1,35 @@
+---
+title: "Capstone_RF&DT"
+author: "Surendra Kumar Dattatrey"
+date: "12 May 2018"
+output: html_document
+---
+```{r}
+library("ggplot2")
+library("tree")
+library("randomForest")
+library("caret")
+library(ROCR)
+```
+
+Decision Tree Algorithm 
+
+```{r}
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+set.seed(3333)
+dtree_fit <- train(Status_der ~ ., data = train_total, method = "rpart",
+                   parms = list(split = "information"),
+                   trControl=trctrl,
+                   tuneLength = 10)
+
+prp(dtree_fit$finalModel, box.palette = "Reds", tweak = 1.2)
+
+```
+
+
+
+```{r}
+test_pred <- predict(dtree_fit, newdata = test_total)
+confusionMatrix(test_pred, test_total$Status_der )  #check accuracy
+
+```

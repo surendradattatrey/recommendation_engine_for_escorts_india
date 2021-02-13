@@ -1,0 +1,92 @@
+---
+title: "RF"
+author: "Surendra Kumar Dattatrey"
+date: "12 May 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE }
+library("data.table")
+library("dplyr")
+library("pscl")
+library("caret")
+library("ROCR")
+require("MASS")
+library("randomForest")
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+myData = read.csv("C:\\Users\\Yash\\Desktop\\ISB Documents\\Capstone Project\\Data\\Raj Data\\Raj_data_for_EDA.csv",header=TRUE)
+
+######################################################################
+############# Data Cleaning ##########################################
+######################################################################
+
+
+## Removing last columns
+myData <- myData[,-54]
+myData <- myData[,-54]
+myData <- myData[,-54]
+myData <- myData[,-54]
+myData <- myData[,-54]
+myData <- myData[,-54]
+
+## Removing first columns
+myData <- myData[,-1]
+myData <- myData[,-1]
+a <- as.data.frame(myData)
+b <- as.data.table(myData)
+
+# Confirm dimensionality
+dim(a) 
+dim(b) 
+# Unique rows using all columns
+dim(unique(a))  
+dis_mydata <- as.data.frame(unique(a))
+#dim(unique(b))  
+dis_mydata_u <- as.data.table(unique(b))
+
+#dis_mydata %>%
+#  select(dis_mydata$Dlr.Code, dis_mydata$Tehsil, dis_mydata$DSE )
+
+dis_mydata_subset <- dis_mydata[, c(5,14,18,23,29,35)]
+
+dis_mydata_subset$Status_der<-0
+
+dis_mydata_subset$Status_der <- ifelse(dis_mydata_subset$Status > 3 |dis_mydata_subset$Status < 3 , 0, 1)
+
+dis_mydata_subset$Status_der <- as.factor(dis_mydata_subset$Status_der)
+
+write.csv(dis_mydata_subset,'dis_mydata_subset.csv')
+
+dis_mydata_subset <- dis_mydata_subset[,-6]
+
+
+######################################################################
+############# Splitting data between Train and Test ##################
+
+dt = sort(sample(nrow(dis_mydata_subset), nrow(dis_mydata_subset)*.7))
+train_total<-dis_mydata_subset[dt,]
+test_total<-dis_mydata_subset[-dt,]
+
+####################################################################
+##################### Random Forest #################################
+rf <-randomForest(Status_der ~ ., data=train_total, ntree=1000) 
+print(rf)
+
+predTrain <- predict(rf, train_total, type = "class")
+table(predTrain, train_total$Status_der) ## Train Confusion Matrix
+
+predValid <- predict(rf, test_total, type = "class")
+mean(predValid == test_total$Status_der)                    
+table(predValid,test_total$Status_der)
+
+importance(rf)        
+varImpPlot(rf)  
+
+
+
+```
